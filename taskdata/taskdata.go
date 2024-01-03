@@ -6,13 +6,15 @@ import (
 	"fmt"
 	"os"
 	"os/user"
-	"path"
+	"path/filepath"
 )
 
 type Task struct {
 	Id      int    `json:"id"`
 	Content string `json:"content"`
 }
+
+const PERMS = 0644
 
 func RerangeIDs(tasks []Task) {
 	for i := 0; i < len(tasks); i++ {
@@ -22,11 +24,11 @@ func RerangeIDs(tasks []Task) {
 
 func getTasksPath() string {
 	user, _ := user.Current()
-	filePath := path.Join(user.HomeDir, ".tasks.json")
+	filePath := filepath.Join(user.HomeDir, ".tasks.json")
 
 	// Create the file if it doesn't exist
 	if bytes, err := os.ReadFile(filePath); len(bytes) == 0 || err != nil {
-		os.WriteFile(filePath, []byte("[]"), 0666)
+		os.WriteFile(filePath, []byte("[]"), PERMS)
 	}
 
 	return filePath
@@ -68,7 +70,7 @@ func WriteTask(taskContent string) (*Task, error) {
 		return nil, err
 	}
 
-	err = os.WriteFile(getTasksPath(), tasksBytes, 0666)
+	err = os.WriteFile(getTasksPath(), tasksBytes, PERMS)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +84,7 @@ func WriteTasks(tasks []Task) error {
 		return err
 	}
 
-	err = os.WriteFile(getTasksPath(), tasksBytes, 0666)
+	err = os.WriteFile(getTasksPath(), tasksBytes, PERMS)
 	if err != nil {
 		return err
 	}
@@ -105,7 +107,7 @@ func RemoveTask(taskId int) (*Task, error) {
 		}
 	}
 	if deletedTask == nil {
-		return nil, errors.New(fmt.Sprintf("Task with the ID %d was not found", taskId))
+		return nil, fmt.Errorf("Task with the ID %d was not found", taskId)
 	}
 
 	tasksBytes, err := json.Marshal(tasks)
@@ -113,7 +115,7 @@ func RemoveTask(taskId int) (*Task, error) {
 		return nil, err
 	}
 
-	os.WriteFile(getTasksPath(), tasksBytes, 0666)
+	os.WriteFile(getTasksPath(), tasksBytes, PERMS)
 
 	return deletedTask, nil
 }
