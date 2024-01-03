@@ -3,6 +3,7 @@ package iotask
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"os/user"
 	"path"
@@ -11,6 +12,12 @@ import (
 type Task struct {
 	Id      int    `json:"id"`
 	Content string `json:"content"`
+}
+
+func RerangeIDs(tasks []Task) {
+	for i := 0; i < len(tasks); i++ {
+		tasks[i].Id = i + 1
+	}
 }
 
 func getTasksPath() string {
@@ -69,6 +76,20 @@ func WriteTask(taskContent string) (*Task, error) {
 	return &newTask, err
 }
 
+func WriteTasks(tasks []Task) error {
+	tasksBytes, err := json.Marshal(tasks)
+	if err != nil {
+		return err
+	}
+
+	err = os.WriteFile(getTasksPath(), tasksBytes, 0666)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func RemoveTask(taskId int) (*Task, error) {
 	tasks, err := GetTasks()
 	if err != nil {
@@ -84,11 +105,7 @@ func RemoveTask(taskId int) (*Task, error) {
 		}
 	}
 	if deletedTask == nil {
-		return nil, errors.New("Task with the given ID was not found")
-	}
-
-	for i := 0; i < len(tasks); i++ {
-		tasks[i].Id = i + 1
+		return nil, errors.New(fmt.Sprintf("Task with the ID %d was not found", taskId))
 	}
 
 	tasksBytes, err := json.Marshal(tasks)

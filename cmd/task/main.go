@@ -12,17 +12,17 @@ import (
 
 func main() {
 	commandsMap := map[string]string{
-		"help":             "Show this message",
-		"add":              "Create a new task",
-		"list":             "List all tasks",
-		"remove [task id]": "Remove a specefic task for completion",
+		"help":                 "Show this message",
+		"add":                  "Create a new task",
+		"list":                 "List all tasks",
+		"remove [id] [id] ...": "Remove specefic tasks for completion",
 	}
 
 	args := os.Args[1:]
 	argsLength := len(args)
 
 	help := func() {
-		fmt.Println("usage: task [COMMAND] [OPTION]")
+		fmt.Println("usage: task [COMMAND]")
 		fmt.Println()
 
 		for cmd, desc := range commandsMap {
@@ -30,7 +30,7 @@ func main() {
 		}
 	}
 
-	if 0 == argsLength || argsLength > 2 {
+	if 0 == argsLength {
 		help()
 		return
 	}
@@ -72,18 +72,28 @@ func main() {
 			fmt.Printf("ID: %d, Content: %s\n", task.Id, task.Content)
 		}
 	case "remove":
-		id, err := strconv.Atoi(args[1])
-		if err != nil {
-			fmt.Println("Couldn't delete task")
-			return
-		}
+		for _, arg := range args[1:] {
+			id, err := strconv.Atoi(arg)
+			if err != nil {
+				fmt.Println("Couldn't delete task with id", id)
+				return
+			}
 
-		task, err := iotask.RemoveTask(id)
+			task, err := iotask.RemoveTask(id)
+			if err != nil {
+				fmt.Println(err.Error())
+				continue
+			}
+
+			fmt.Printf("Task \"%s\" removed\n", task.Content)
+		}
+		tasks, err := iotask.GetTasks()
 		if err != nil {
 			panic(err)
 		}
 
-		fmt.Printf("Task \"%s\" removed\n", task.Content)
+		iotask.RerangeIDs(tasks)
+		iotask.WriteTasks(tasks)
 	default:
 		help()
 	}
