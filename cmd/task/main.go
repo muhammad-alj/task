@@ -23,8 +23,6 @@ func main() {
 	command := args[0]
 
 	switch command {
-	case "help":
-		cli.PrintHelpMenu()
 	case "add":
 		fmt.Print("New Task: ")
 

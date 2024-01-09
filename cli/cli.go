@@ -6,32 +6,45 @@ import (
 	"github.com/mohammad-alj/task/taskdata"
 )
 
+type command struct {
+	Name        string
+	Description string
+}
+
 func PrintHelpMenu() {
-	commandsMap := map[string]string{
-		"help":            "Show this message",
-		"add":             "Create a new task",
-		"list":            "List all tasks",
-		"remove [id] ...": "Remove specefic tasks for completion",
+	commands := []command{
+		{
+			Name:        "add",
+			Description: "Create a new task",
+		},
+		{
+			Name:        "list",
+			Description: "List all tasks",
+		},
+		{
+			Name:        "remove <id>",
+			Description: "Remove tasks by inserting their ID's",
+		},
 	}
 
-	longestMapKey := 0
-	for k := range commandsMap {
-		keyLen := len(k)
-		if keyLen > longestMapKey {
-			longestMapKey = keyLen
+	longestCmd := 0
+	for _, cmd := range commands {
+		cmdLen := len(cmd.Name)
+		if cmdLen > longestCmd {
+			longestCmd = cmdLen
 		}
 	}
 
 	fmt.Println("usage: task [COMMAND]")
 	fmt.Println()
 
-	for cmd, desc := range commandsMap {
-		spaces := longestMapKey - len(cmd) + 2
-		fmt.Printf("    %s", cmd)
+	for _, cmd := range commands {
+		spaces := longestCmd - len(cmd.Name) + 2
+		fmt.Printf("    %s", cmd.Name)
 		for i := 0; i < spaces; i++ {
 			fmt.Print(" ")
 		}
-		fmt.Println(desc)
+		fmt.Println(cmd.Description)
 	}
 }
 
